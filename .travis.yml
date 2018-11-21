@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t wramsey/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run wramsey/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t wramsey/multi-client ./client
+  - docker build -t wramsey/multi-nginx ./nginx
+  - docker build -t wramsey/multi-server ./server
+  - docker build -t wramsey/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push wramsey/multi-client
+  - docker push wramsey/multi-nginx
+  - docker push wramsey/multi-server
+  - docker push wramsey/multi-worker
